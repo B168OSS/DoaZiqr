@@ -2,6 +2,13 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import * as htmlToImage from 'html-to-image';
 import gifshot from 'gifshot';
+import axios from 'axios';
+
+declare global {
+  interface Window {
+    Pi: any;
+  }
+}
 
 // --- INLINE SVG ICON COMPONENTS ---
 const VolumeIcon = ({ size = 24, className = "" }) => (
@@ -9,6 +16,28 @@ const VolumeIcon = ({ size = 24, className = "" }) => (
     <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
     <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
     <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+  </svg>
+);
+
+const PiIcon = ({ size = 24, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="currentColor" className={className}>
+    <path d="M50 10C27.9 10 10 27.9 10 50s17.9 40 40 40 40-17.9 40-40S72.1 10 50 10zm0 72c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z" />
+    <path d="M65 40h-8v-3.5c0-1.9-1.6-3.5-3.5-3.5h-7c-1.9 0-3.5 1.6-3.5 3.5V40h-8c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h4.5c.8 0 1.5.7 1.5 1.5v16c0 1.9 1.6 3.5 3.5 3.5h14c1.9 0 3.5-1.6 3.5-3.5v-16c0-.8.7-1.5 1.5-1.5H65c1.1 0 2-.9 2-2v-2c0-1.1-.9-2-2-2z" />
+  </svg>
+);
+
+const GoogleIcon = ({ size = 24, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+  </svg>
+);
+
+const FacebookIcon = ({ size = 24, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" fill="#1877F2"/>
   </svg>
 );
 
@@ -168,6 +197,21 @@ const CheckIcon = ({ size = 24, className = "" }) => (
 const MusicIcon = ({ size = 24, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+  </svg>
+);
+
+const LogoutIcon = ({ size = 24, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+);
+
+const UserIcon = ({ size = 24, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
   </svg>
 );
 
@@ -601,6 +645,196 @@ petangData[20] = { ...pagiData[20] };
 
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('dzikir_user') !== null);
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('dzikir_user');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [isAutoAuthenticating, setIsAutoAuthenticating] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  const [playbackSpeed, setPlaybackSpeed] = useState(() => parseFloat(localStorage.getItem('dzikir_speed') || '1'));
+  const [defaultVolume, setDefaultVolume] = useState(() => parseFloat(localStorage.getItem('dzikir_volume') || '1'));
+  const [stats, setStats] = useState(() => {
+    const saved = localStorage.getItem('dzikir_stats');
+    return saved ? JSON.parse(saved) : { totalRead: 0, timeSpent: 0, freq: {} };
+  });
+  const [screenAnnouncement, setScreenAnnouncement] = useState("");
+  const [needRefresh, setNeedRefresh] = useState(false);
+
+  const isPiInitialized = useRef(false);
+
+  // --- PI NETWORK AUTH REDUCER ---
+  const handlePiAuth = async (isAuto = false) => {
+    // Check if Pi SDK is actually functional
+    if (typeof window.Pi === 'undefined' || !window.Pi.init || typeof window.Pi.init !== 'function') {
+      if (!isAuto) {
+        setAuthError("Pi SDK tidak terdeteksi. Pastikan anda menggunakan Pi Browser.");
+      }
+      return;
+    }
+    
+    if (isAuto) setIsAutoAuthenticating(true);
+    else setIsAuthenticating(true);
+
+    setAuthError(null);
+
+    const timeoutPromise = (ms: number) => new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("timeout: Lingkungan tidak merespon. Aplikasi ini harus dibuka di dalam Pi Browser.")), ms)
+    );
+
+    try {
+      // 1. Initialize only once with timeout
+      if (!isPiInitialized.current) {
+        console.log("Initializing Pi SDK...");
+        // Using a 10s timeout for init to fail fast in non-Pi environments
+        await Promise.race([
+          window.Pi.init({ version: "2.0", sandbox: true }),
+          timeoutPromise(isAuto ? 5000 : 10000) // Faster timeout for auto
+        ]);
+        isPiInitialized.current = true;
+      }
+
+      // 2. Authenticate with timeout
+      console.log("Requesting Pi authentication...");
+      const authResponse = await Promise.race([
+        window.Pi.authenticate(["username"], (onIncompletePaymentFound: any) => {
+          console.warn("Incomplete payment found:", onIncompletePaymentFound);
+        }),
+        timeoutPromise(isAuto ? 8000 : 15000) // Faster timeout for auto
+      ]) as any;
+
+      const { accessToken } = authResponse;
+      
+      // 3. Send to backend for validation
+      const response = await axios.post("/api/auth/pi", { accessToken });
+      
+      if (response.data.success) {
+        const userData = response.data.user;
+        setUser(userData);
+        setIsLoggedIn(true);
+        localStorage.setItem('dzikir_user', JSON.stringify(userData));
+        vibrate(30);
+      }
+    } catch (error: any) {
+      console.error("Pi Auth Error Details:", error);
+      
+      const errorMsg = error.message || "";
+      
+      // Only show error message if it's a manual attempt OR if it's a real auth error (not just a timeout in a regular browser)
+      if (!isAuto || (!errorMsg.toLowerCase().includes("timeout") && !errorMsg.toLowerCase().includes("messaging promise"))) {
+        let friendlyError = errorMsg || "Gagal autentikasi dengan Pi Network";
+        
+        if (friendlyError.toLowerCase().includes("timeout") || friendlyError.toLowerCase().includes("messaging promise")) {
+          friendlyError = "Koneksi Pi Network gagal. Aplikasi ini harus dijalankan di dalam Pi Browser agar fitur Pi Network aktif.";
+        }
+        
+        setAuthError(friendlyError);
+      }
+    } finally {
+      setIsAuthenticating(false);
+      setIsAutoAuthenticating(false);
+    }
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setIsLoggedIn(false);
+    localStorage.removeItem('dzikir_user');
+    vibrate(20);
+  };
+
+  const handleSocialLogin = (provider: 'google' | 'facebook') => {
+    vibrate(30);
+    setIsAuthenticating(true);
+    setAuthError(null);
+    
+    // Simulate processing as requested: "otomatis login untuk lanjut ke menu utama"
+    setTimeout(() => {
+      const mockUser = {
+        uid: `${provider}_${Math.random().toString(36).substr(2, 9)}`,
+        username: `${provider.charAt(0).toUpperCase() + provider.slice(1)} User`,
+        provider: provider
+      };
+      setUser(mockUser);
+      setIsLoggedIn(true);
+      localStorage.setItem('dzikir_user', JSON.stringify(mockUser));
+      setIsAuthenticating(false);
+      vibrate(50);
+    }, 1500);
+  };
+
+  const hasAttemptedAutoAuth = useRef(false);
+
+  useEffect(() => {
+    // Welcome screen timeout
+    const timer = setTimeout(() => {
+      setShowWelcome(false);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!showWelcome && isLoggedIn) {
+        setStats(prev => {
+          const newStats = { ...prev, timeSpent: prev.timeSpent + 1 };
+          localStorage.setItem('dzikir_stats', JSON.stringify(newStats));
+          return newStats;
+        });
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [showWelcome, isLoggedIn]);
+
+  useEffect(() => {
+    localStorage.setItem('dzikir_speed', playbackSpeed.toString());
+  }, [playbackSpeed]);
+
+  useEffect(() => {
+    localStorage.setItem('dzikir_volume', defaultVolume.toString());
+  }, [defaultVolume]);
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistration().then(reg => {
+        if (reg) {
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  setNeedRefresh(true);
+                  setScreenAnnouncement("Versi baru aplikasi tersedia. Silakan segarkan halaman.");
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+  }, []);
+
+  const updateStatsRead = (id: string | number) => {
+    setStats(prev => {
+      const newFreq = { ...prev.freq };
+      newFreq[id] = (newFreq[id] || 0) + 1;
+      const newStats = { 
+        ...prev, 
+        totalRead: prev.totalRead + 1,
+        freq: newFreq 
+      };
+      localStorage.setItem('dzikir_stats', JSON.stringify(newStats));
+      return newStats;
+    });
+  };
+
+  const announce = (msg: string) => {
+    setScreenAnnouncement(msg);
+    setTimeout(() => setScreenAnnouncement(""), 3000);
+  };
   const [category, setCategory] = useState<'pagi' | 'petang'>('pagi');
   const [pageIndex, setPageIndex] = useState(0);
   const [lang, setLang] = useState<'id' | 'en'>('id');
@@ -640,7 +874,6 @@ export default function App() {
   const [isCapturing, setIsCapturing] = useState(false);
   const [captureProgress, setCaptureProgress] = useState(0);
   const [flipProgress, setFlipProgress] = useState(0); // 0 to 1
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [fontFamily, setFontFamily] = useState<'sans' | 'dyslexic'>('sans');
   const [arabicLineHeight, setArabicLineHeight] = useState(1.6);
   const [arabicLetterSpacing, setArabicLetterSpacing] = useState(0);
@@ -688,6 +921,14 @@ export default function App() {
   useEffect(() => {
     if (playerRef.current) {
       playerRef.current.playbackRate = playbackSpeed;
+      playerRef.current.volume = defaultVolume;
+    }
+  }, [playbackSpeed, defaultVolume]);
+
+  useEffect(() => {
+    // Apply speed to TTS too
+    if (currentUtteranceRef.current) {
+      currentUtteranceRef.current.rate = playbackSpeed;
     }
   }, [playbackSpeed]);
 
@@ -854,13 +1095,90 @@ export default function App() {
     updateUI();
   }, [targetLang, lang]);
 
+  const fuzzySearch = (query: string, data: any[]) => {
+    if (!query) return data;
+    const q = query.toLowerCase();
+    return data.map(item => {
+      let score = 0;
+      const title = (item.title || "").toLowerCase();
+      const translation = (item.translation || "").toLowerCase();
+      const latin = (item.latin || "").toLowerCase();
+      
+      if (title.includes(q)) score += 10;
+      if (translation.includes(q)) score += 5;
+      if (latin.includes(q)) score += 3;
+      
+      // Simple fuzzy: check if letters exist in order
+      let lastIndex = -1;
+      let matchedChars = 0;
+      for (let i = 0; i < q.length; i++) {
+        const foundIndex = title.indexOf(q[i], lastIndex + 1);
+        if (foundIndex > -1) {
+          matchedChars++;
+          lastIndex = foundIndex;
+        }
+      }
+      score += matchedChars;
+      
+      return { ...item, score };
+    })
+    .filter((item: any) => item.score > 0)
+    .sort((a: any, b: any) => b.score - a.score);
+  };
+
+  const filteredData = useMemo(() => {
+    const data = category === 'pagi' ? pagiData : petangData;
+    return fuzzySearch(searchQuery, data);
+  }, [category, searchQuery]);
+
   const t = useMemo(() => {
     const base = uiDict[lang];
-    return { ...base, ...uiTranslations };
+    const statsStrings = {
+      id: {
+        stats: "Statistik Pengguna",
+        totalDzikir: "Total Dzikir Dibaca",
+        timeInApp: "Waktu dalam Aplikasi",
+        mostFrequent: "Dzikir Terfavorit",
+        minutes: "menit",
+        seconds: "detik",
+        updateAvailable: "Update Tersedia",
+        refreshNow: "Segarkan Sekarang"
+      },
+      en: {
+        stats: "User Statistics",
+        totalDzikir: "Total Dhikr Read",
+        timeInApp: "Time in App",
+        mostFrequent: "Most Frequent",
+        minutes: "minutes",
+        seconds: "seconds",
+        updateAvailable: "Update Available",
+        refreshNow: "Refresh Now"
+      }
+    };
+    return { ...base, ...uiTranslations, ...(statsStrings[lang] || statsStrings.en) };
   }, [lang, uiTranslations]);
 
   const list = category === 'pagi' ? pagiData : petangData;
   const item = list[pageIndex];
+
+  const mostFreqId = useMemo(() => {
+    const freq = stats.freq || {};
+    let max = 0;
+    let maxId = null;
+    for (const id in freq) {
+      if (freq[id] > max) {
+        max = freq[id];
+        maxId = id;
+      }
+    }
+    return maxId;
+  }, [stats.freq]);
+
+  const mostFreqTitle = useMemo(() => {
+    if (!mostFreqId) return "-";
+    const found = [...pagiData, ...petangData].find(d => d.id.toString() === mostFreqId.toString());
+    return found ? found.title : "-";
+  }, [mostFreqId]);
 
   const [currentTranslation, setCurrentTranslation] = useState("");
   const [currentNoteTranslation, setCurrentNoteTranslation] = useState("");
@@ -885,6 +1203,7 @@ export default function App() {
           const tNote = await translateText(item.note, targetLang);
           setCurrentNoteTranslation(tNote);
         }
+        announce("Terjemahan dimuat.");
       }
     };
     updateTranslations();
@@ -898,18 +1217,22 @@ export default function App() {
   }, []);
 
   const handleNext = useCallback(() => {
+    updateStatsRead(item.id);
     vibrate(15);
     stopAll();
     playTurnSound();
     setPageIndex((p) => (p + 1) % list.length);
-  }, [list.length, stopAll]);
+    announce(`Halaman selanjutnya. ${list[(pageIndex + 1) % list.length].title}`);
+  }, [list, stopAll, item.id, pageIndex]);
 
   const handlePrev = useCallback(() => {
+    updateStatsRead(item.id);
     vibrate(15);
     stopAll();
     playTurnSound();
     setPageIndex((p) => (p - 1 + list.length) % list.length);
-  }, [list.length, stopAll]);
+    announce(`Halaman sebelumnya. ${list[(pageIndex - 1 + list.length) % list.length].title}`);
+  }, [list, stopAll, item.id, pageIndex]);
 
   const handleDragEnd = (event: any, info: any) => {
     const threshold = 100;
@@ -1144,6 +1467,20 @@ export default function App() {
 
   return (
     <div id="app-root" className={`min-h-screen flex flex-col transition-all duration-500 ${themeClass} ${contrastClass} ${fontClass}`}>
+      <div className="sr-only" aria-live="polite">
+        {screenAnnouncement}
+      </div>
+      {needRefresh && (
+        <div className="fixed top-0 left-0 right-0 z-[1000] bg-blue-600 text-white p-3 flex items-center justify-between shadow-xl animate-bounce">
+          <span className="text-sm font-black uppercase tracking-widest px-4">{t.updateAvailable}</span>
+          <button 
+            onClick={() => window.location.reload()}
+            className="flex items-center gap-2 bg-white text-blue-600 px-4 py-1 rounded-full font-black text-xs mr-4"
+          >
+            <SunIcon size={16} /> {t.refreshNow}
+          </button>
+        </div>
+      )}
       <style>{`
         .font-dyslexic {
           font-family: 'Comic Sans MS', cursive, sans-serif !important;
@@ -1154,59 +1491,189 @@ export default function App() {
           .line-spacing-1-5 { line-height: 1.6; }
           .line-spacing-2 { line-height: 2.2; }
         }
-        .page-fold {
-          position: absolute;
-          top: 0;
-          right: 0;
-          width: 0;
-          height: 0;
-          background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.2) 100%);
-          z-index: 60;
-          pointer-events: none;
+        @keyframes loading-bar {
+          0% { width: 0%; }
+          100% { width: 100%; }
+        }
+        .animate-loading-bar {
+          animation: loading-bar 3s linear forwards;
         }
       `}</style>
+
+      <AnimatePresence>
+        {showWelcome && (
+          <motion.div 
+            key="welcome"
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center p-8 text-center"
+          >
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="relative w-64 h-64 md:w-96 md:h-96 mb-8"
+            >
+              <img 
+                src="https://doadzikir.vercel.app/pwa-512x512.png" 
+                alt="Loading Logo" 
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  // Fallback if image doesn't exist
+                  (e.target as HTMLImageElement).src = "https://cdn-icons-png.flaticon.com/512/2870/2870199.png";
+                }}
+              />
+            </motion.div>
+            <h2 className="text-2xl md:text-4xl font-black text-blue-900 mb-4 uppercase tracking-tighter">Bismillahi...</h2>
+            <div className="w-64 h-2 bg-slate-100 rounded-full overflow-hidden relative">
+              <div className="absolute top-0 left-0 h-full bg-blue-500 animate-loading-bar" />
+            </div>
+          </motion.div>
+        )}
+
+        {!showWelcome && !isLoggedIn && (
+          <motion.div 
+            key="login"
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed inset-0 z-[900] bg-gradient-to-br from-blue-500 to-indigo-700 flex flex-col items-center justify-center p-6 text-white"
+          >
+            <div className="w-full max-w-sm flex flex-col gap-8">
+              <div className="text-center">
+                <h1 className="text-4xl font-black uppercase tracking-tighter mb-2">Doa & Dzikir</h1>
+                <p className="font-bold opacity-80">Silahkan masuk untuk memulai dzikir harian anda.</p>
+              </div>
+
+              {authError && (
+                <div className="p-4 bg-red-500/20 border border-red-500/50 rounded-2xl text-xs font-bold text-center animate-shake">
+                  {authError}
+                </div>
+              )}
+
+              <div className="flex flex-col gap-4">
+                <button 
+                  onClick={() => handleSocialLogin('google')}
+                  disabled={isAuthenticating}
+                  className="flex items-center gap-4 bg-white text-slate-900 p-4 rounded-2xl font-black transition-all hover:scale-105 active:scale-95 shadow-xl disabled:opacity-50"
+                >
+                  <GoogleIcon size={24} />
+                  <span>{isAuthenticating ? "Memproses..." : "Lanjutkan dengan Google"}</span>
+                </button>
+
+                <button 
+                  onClick={() => handleSocialLogin('facebook')}
+                  disabled={isAuthenticating}
+                  className="flex items-center gap-4 bg-[#1877F2] text-white p-4 rounded-2xl font-black transition-all hover:scale-105 active:scale-95 shadow-xl disabled:opacity-50"
+                >
+                  <FacebookIcon size={24} />
+                  <span>{isAuthenticating ? "Memproses..." : "Lanjutkan dengan Facebook"}</span>
+                </button>
+
+                <div className="flex items-center gap-4 my-2">
+                  <div className="h-px flex-1 bg-white/20" />
+                  <span className="text-xs font-black opacity-60">ATAU UNTUK PENGGUNA PI</span>
+                  <div className="h-px flex-1 bg-white/20" />
+                </div>
+
+                <div className="p-4 bg-yellow-400/10 border border-yellow-400/30 rounded-2xl mb-2">
+                  <p className="text-[10px] font-bold text-center text-yellow-100">
+                    Fitur Pi Network hanya tersedia jika aplikasi dibuka melalui 
+                    <span className="text-yellow-400"> Pi Browser</span>.
+                  </p>
+                </div>
+
+                <button 
+                  onClick={handlePiAuth}
+                  disabled={isAuthenticating}
+                  className="flex items-center gap-4 bg-[#ffc107] text-slate-900 p-4 rounded-2xl font-black transition-all hover:scale-105 active:scale-95 shadow-xl disabled:opacity-70"
+                >
+                  <PiIcon size={24} />
+                  <div className="flex flex-col items-start leading-tight">
+                    <span>{isAuthenticating ? "Memproses..." : "Masuk dengan Pi Network"}</span>
+                    <span className="text-[10px] opacity-70">Khusus Pi Browser User</span>
+                  </div>
+                </button>
+                
+                {authError && (
+                  <button 
+                    onClick={handlePiAuth}
+                    className="text-xs font-bold underline opacity-80 hover:opacity-100 transition-opacity"
+                  >
+                    Coba Lagi?
+                  </button>
+                )}
+              </div>
+
+              <p className="text-[10px] text-center opacity-60 px-8 py-4 border-t border-white/10 font-bold">
+                Dengan melanjutkan, anda menyetujui Ketentuan Layanan dan Kebijakan Privasi kami.
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {isLoggedIn && !showWelcome && (
+        <>
       
       {/* TOP HEADER */}
-      <header className={`sticky top-0 z-50 p-4 flex items-center justify-between border-b ${isA11yMode ? 'bg-black border-yellow-300' : isDarkMode ? 'bg-slate-900/90 border-slate-800' : 'bg-white/90 border-stone-200'} backdrop-blur-md`} id="main-header">
-        <div className="flex items-center gap-3">
-           <VolumeIcon size={isA11yMode ? 40 : 28} className={isA11yMode ? "text-yellow-300" : "text-blue-500"} />
-           <h1 className="text-xl md:text-2xl font-black uppercase tracking-tighter">{(category === 'pagi' ? t.pagi : t.petang) || `Dzikir ${category}`}</h1>
-        </div>
-        
-        <div className="flex gap-2">
-          {installPrompt && (
+      <header className={`sticky top-0 z-50 p-4 flex flex-col gap-3 border-b ${isA11yMode ? 'bg-black border-yellow-300' : isDarkMode ? 'bg-slate-900/90 border-slate-800' : 'bg-white/90 border-stone-200'} backdrop-blur-md`} id="main-header">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+             <VolumeIcon size={isA11yMode ? 40 : 28} className={isA11yMode ? "text-yellow-300" : "text-blue-500"} />
+             <div className="flex flex-col leading-tight">
+               <h1 className="text-xl md:text-2xl font-black uppercase tracking-tighter">{(category === 'pagi' ? t.pagi : t.petang) || `Dzikir ${category}`}</h1>
+               {user && (
+                 <div className="flex items-center gap-1 opacity-70">
+                    <UserIcon size={12} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">{user.username}</span>
+                 </div>
+               )}
+             </div>
+          </div>
+          
+          <div className="flex gap-2">
+            {installPrompt && (
+              <button 
+                 onClick={handleInstall}
+                 className={`p-3 rounded-xl transition-all ${isA11yMode ? 'border-4 border-yellow-300' : isDarkMode ? 'bg-slate-800 text-white' : 'bg-green-100 text-green-700 font-bold'}`}
+                 aria-label={t.install}
+              >
+                <DownloadIcon size={isA11yMode ? 32 : 24} />
+              </button>
+            )}
             <button 
-               onClick={handleInstall}
-               className={`p-3 rounded-xl transition-all ${isA11yMode ? 'border-4 border-yellow-300' : isDarkMode ? 'bg-slate-800 text-white' : 'bg-green-100 text-green-700 font-bold'}`}
-               aria-label={t.install}
+               onClick={() => { vibrate(10); setIsSearchOpen(true); }}
+               className={`p-3 rounded-xl transition-all ${isA11yMode ? 'border-4 border-yellow-300' : isDarkMode ? 'bg-slate-800 text-white' : 'bg-stone-100'}`}
+               aria-label={t.search}
             >
-              <DownloadIcon size={isA11yMode ? 32 : 24} />
+              <SearchIcon size={isA11yMode ? 32 : 24} />
             </button>
-          )}
-          <button 
-             onClick={() => { vibrate(10); setIsSearchOpen(true); }}
-             className={`p-3 rounded-xl transition-all ${isA11yMode ? 'border-4 border-yellow-300' : isDarkMode ? 'bg-slate-800 text-white' : 'bg-stone-100'}`}
-             aria-label={t.search}
-          >
-            <SearchIcon size={isA11yMode ? 32 : 24} />
-          </button>
-          <button 
-            id="cat-toggle"
-            aria-label={`Switch to ${category === 'pagi' ? 'Morning' : 'Evening'} Dzikir`}
-            onClick={() => { vibrate(20); setCategory(category === 'pagi' ? 'petang' : 'pagi'); setPageIndex(0); stopAll(); }}
-            className={`px-4 py-2 rounded-xl font-bold uppercase transition-all ${isA11yMode ? 'border-4 border-yellow-300' : isDarkMode ? 'bg-slate-800 text-white' : 'bg-slate-200 text-slate-800'}`}
-          >
-            {category === 'pagi' ? '🏠' : '🌙'} {category}
-          </button>
-          <button 
-            id="btn-settings"
-            aria-expanded={showSettings}
-            aria-label={t.theme}
-            onClick={() => { vibrate(10); setShowSettings(!showSettings); }}
-            className={`p-3 rounded-xl transition-all ${isA11yMode ? 'border-4 border-yellow-300' : isDarkMode ? 'bg-slate-800 text-white' : 'bg-stone-100'}`}
-          >
-            <SettingsIcon size={isA11yMode ? 32 : 24} />
-          </button>
+            <button 
+              id="cat-toggle"
+              aria-label={`Switch to ${category === 'pagi' ? 'Morning' : 'Evening'} Dzikir`}
+              onClick={() => { vibrate(20); setCategory(category === 'pagi' ? 'petang' : 'pagi'); setPageIndex(0); stopAll(); }}
+              className={`px-4 py-2 rounded-xl font-bold uppercase transition-all ${isA11yMode ? 'border-4 border-yellow-300' : isDarkMode ? 'bg-slate-800 text-white' : 'bg-slate-200 text-slate-800'}`}
+            >
+              {category === 'pagi' ? '🏠' : '🌙'} {category}
+            </button>
+            <button 
+              id="btn-settings"
+              aria-expanded={showSettings}
+              aria-label={t.theme}
+              onClick={() => { vibrate(10); setShowSettings(!showSettings); }}
+              className={`p-3 rounded-xl transition-all ${isA11yMode ? 'border-4 border-yellow-300' : isDarkMode ? 'bg-slate-800 text-white' : 'bg-stone-100'}`}
+            >
+              <SettingsIcon size={isA11yMode ? 32 : 24} />
+            </button>
+            <button 
+              onClick={handleLogout}
+              title="Logout"
+              className={`p-3 rounded-xl transition-all ${isA11yMode ? 'border-4 border-yellow-300' : isDarkMode ? 'bg-slate-800 text-white' : 'bg-red-50 text-red-600'}`}
+            >
+              <LogoutIcon size={isA11yMode ? 32 : 24} />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -1271,15 +1738,19 @@ export default function App() {
                         type="search" value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder={t.search}
-                        className={`w-full p-4 pl-12 rounded-2xl border-none ring-2 ring-transparent bg-black/5 focus:ring-blue-500 outline-none font-bold`}
+                        className={`w-full p-4 pl-12 pr-12 rounded-2xl border-none ring-2 ring-transparent bg-black/5 focus:ring-blue-500 outline-none font-bold`}
                       />
+                      {searchQuery && (
+                        <button 
+                          onClick={() => setSearchQuery("")}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 p-1 bg-black/10 rounded-full hover:bg-black/20"
+                        >
+                          <XIcon size={16} />
+                        </button>
+                      )}
                    </div>
                    <div className="max-h-[50vh] overflow-y-auto flex flex-col gap-2">
-                       {list.filter(d => 
-                         d.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         d.translation.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         d.latin.toLowerCase().includes(searchQuery.toLowerCase())
-                       ).map((d) => {
+                       {filteredData.map((d: any) => {
                          const originalIndex = list.findIndex(item => item.id === d.id);
                          const cacheKey = `${targetLang}:${d.title}`;
                          const displayTitle = (targetLang === 'id') ? d.title : (translationCache[cacheKey] || d.title);
@@ -1298,7 +1769,7 @@ export default function App() {
                            </button>
                          );
                        })}
-                      {list.filter(d => d.title.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                      {filteredData.length === 0 && (
                         <div className="text-center py-8 opacity-40 font-black italic">{t.noResults}</div>
                       )}
                    </div>
@@ -1368,6 +1839,20 @@ export default function App() {
               </div>
 
               <div className="p-4 rounded-2xl bg-black/5 flex flex-col gap-3">
+                <span className="text-xs font-black uppercase opacity-60 tracking-widest">{t.volume}</span>
+                <div className="flex items-center gap-4">
+                  <VolumeIcon size={16} className="opacity-50" />
+                  <input 
+                    type="range" min="0" max="1" step="0.1" 
+                    value={defaultVolume} 
+                    onChange={(e) => { vibrate(10); setDefaultVolume(parseFloat(e.target.value)); }}
+                    className="flex-1 accent-blue-500 h-1 rounded-lg cursor-pointer"
+                  />
+                  <span className="text-xs font-black w-8">{Math.round(defaultVolume * 100)}%</span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-black/5 flex flex-col gap-3">
                 <span className="text-xs font-black uppercase opacity-60 tracking-widest">{t.playbackSpeed}</span>
                 <div className="flex items-center gap-2">
                    {[0.5, 0.75, 1, 1.25, 1.5].map(v => (
@@ -1428,6 +1913,24 @@ export default function App() {
                    {(['normal', 'high', 'ultra'] as const).map(v => (
                      <button key={v} onClick={() => { vibrate(); setContrastMode(v); }} className={`flex-1 p-2 rounded-xl font-black text-[10px] uppercase transition-all ${contrastMode === v ? 'bg-blue-500 text-white' : 'bg-white/50 dark:bg-white/10'}`}>{t[v]}</button>
                    ))}
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-black/5 flex flex-col gap-3 md:col-span-2">
+                <span className="text-xs font-black uppercase opacity-60 tracking-widest">{t.stats}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="flex flex-col p-3 rounded-xl bg-white/50 dark:bg-white/5 border border-black/5">
+                    <span className="text-[10px] uppercase opacity-60">{t.totalDzikir}</span>
+                    <span className="text-xl font-black">{stats.totalRead}</span>
+                  </div>
+                  <div className="flex flex-col p-3 rounded-xl bg-white/50 dark:bg-white/5 border border-black/5">
+                    <span className="text-[10px] uppercase opacity-60">{t.timeInApp}</span>
+                    <span className="text-xl font-black">{Math.floor(stats.timeSpent / 60)} {t.minutes}</span>
+                  </div>
+                  <div className="flex flex-col p-3 rounded-xl bg-white/50 dark:bg-white/5 border border-black/5">
+                    <span className="text-[10px] uppercase opacity-60">{t.mostFrequent}</span>
+                    <span className="text-sm font-black truncate">{mostFreqTitle}</span>
+                  </div>
                 </div>
               </div>
 
@@ -1948,6 +2451,8 @@ export default function App() {
           </div>
         </footer>
       )}
+    </>
+  )}
 
       <style>{`
         .accessibility button:focus { outline: 10px solid #fde047; outline-offset: 8px; }
@@ -1955,6 +2460,14 @@ export default function App() {
         * { scroll-behavior: smooth; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          75% { transform: translateX(5px); }
+        }
+        .animate-shake {
+          animation: shake 0.2s ease-in-out 0s 2;
+        }
       `}</style>
     </div>
   );
