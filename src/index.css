@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+.line-spacing-1 { line-height: 1; }
+.line-spacing-1-5 { line-height: 1.5; }
+.line-spacing-2 { line-height: 2; }
+
+@theme {
+  --font-arabic: "Amiri", "Amiri Quran", "Traditional Arabic", "Scheherazade New", serif;
+}
